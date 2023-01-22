@@ -77,7 +77,8 @@ int Board::GetScore() const
 
             if (len == length)
             {
-                const int reversedScore = std::stoi(std::string(rbegin(str), rend(str)));
+                const int reversedScore =
+                    std::stoi(std::string(rbegin(str), rend(str)));
 
                 marker[score] = true;
                 marker[reversedScore] = true;
@@ -94,7 +95,8 @@ int Board::GetScore() const
                     const int nx = x + dx;
                     const int ny = y + dy;
 
-                    if (nx < 0 || nx >= BOARD_WIDTH || ny < 0 || ny >= BOARD_HEIGHT)
+                    if (nx < 0 || nx >= BOARD_WIDTH || ny < 0 ||
+                        ny >= BOARD_HEIGHT)
                         continue;
 
                     if (At(nx, ny) == str[len] - '0')
