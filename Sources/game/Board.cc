@@ -8,6 +8,10 @@
 
 namespace BOJ
 {
+Board::Board(Matrix board) : board_(std::move(board))
+{
+}
+
 void Board::Randomize()
 {
     using Random = effolkronium::random_static;
@@ -117,6 +121,11 @@ int Board::GetScore() const
     }
 
     throw std::runtime_error("there is a problem");
+}
+
+void Board::Update(const Matrix& board)
+{
+    std::copy(begin(board), end(board), begin(board_));
 }
 
 const Board::Matrix& Board::GetBoard() const

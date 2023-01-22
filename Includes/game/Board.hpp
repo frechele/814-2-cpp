@@ -16,6 +16,14 @@ class Board final
     using Matrix = std::array<std::uint8_t, BOARD_SIZE>;
 
  public:
+    Board() = default;
+    Board(Matrix board);
+    Board(const Board&) = default;
+    Board(Board&&) = default;
+
+    Board& operator=(const Board&) = default;
+    Board& operator=(Board&&) = default;
+
     void Randomize();
 
     std::uint8_t At(int x, int y) const;
@@ -26,6 +34,7 @@ class Board final
 
     int GetScore() const;
 
+    void Update(const Matrix& board);
     const Matrix& GetBoard() const;
 
  private:
