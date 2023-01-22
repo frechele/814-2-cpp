@@ -23,21 +23,19 @@ class Bank final
  public:
     Bank(int capacity);
 
-    Bank(const Bank&) = delete;
-    Bank& operator=(const Bank&) = delete;
-
     void Randomize();
+
+    void SortBank();
 
     void Resize(int newCapacity);
     int GetSize() const;
 
     void SetGene(int index, Gene gene);
     const Gene& GetGene(int index) const;
+    void SetGeneScore(int index, int score);
+    int GetGeneScore(int index) const;
 
     void DumpStats() const;
-
- private:
-    void sortBank();
 
  private:
     std::vector<Gene> genes_;

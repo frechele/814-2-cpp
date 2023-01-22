@@ -26,9 +26,7 @@ Gene Crossover(const Gene& gene1, const Gene& gene2, double prob)
         }
     }
 
-    const int score = BOJ::Board(newGene).GetScore();
-
-    return Gene{ std::move(newGene), score };
+    return Gene{ std::move(newGene), -1 };
 }
 
 Gene Mutation(const Gene& gene, double prob)
@@ -45,9 +43,7 @@ Gene Mutation(const Gene& gene, double prob)
         }
     }
 
-    const int score = BOJ::Board(newGene).GetScore();
-
-    return Gene{ std::move(newGene), score };
+    return Gene{ std::move(newGene), -1 };
 }
 }  // namespace GeneUtils
 
@@ -67,7 +63,7 @@ void Bank::Randomize()
         gene.score = board.GetScore();
     }
 
-    sortBank();
+    SortBank();
 }
 
 void Bank::Resize(int newCapacity)
@@ -90,7 +86,17 @@ const Gene& Bank::GetGene(int index) const
     return genes_[index];
 }
 
-void Bank::sortBank()
+void Bank::SetGeneScore(int index, int score)
+{
+    genes_[index].score = score;
+}
+
+int Bank::GetGeneScore(int index) const
+{
+    return genes_[index].score;
+}
+
+void Bank::SortBank()
 {
     std::sort(genes_.begin(), genes_.end(),
               [](const Gene& gene1, const Gene& gene2) {
