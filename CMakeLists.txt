@@ -21,3 +21,4 @@ include_directories(Includes)
 
 # Project modules
 add_subdirectory(Sources/game)
+add_subdirectory(Sources/solver)
