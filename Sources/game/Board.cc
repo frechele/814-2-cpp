@@ -128,7 +128,7 @@ std::ostream& operator<<(std::ostream& os, const Board& board)
     {
         for (int x = 0; x < Board::BOARD_WIDTH; ++x)
         {
-            os << static_cast<int>(board.At(x, y)) << " ";
+            os << static_cast<int>(board.At(x, y));
         }
         os << std::endl;
     }
