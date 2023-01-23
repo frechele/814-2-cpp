@@ -1,15 +1,17 @@
 #include <effolkronium/random.hpp>
 #include <iostream>
+#include <fstream>
 
 #include <solver/Genetic.hpp>
 #include <solver/ThreadPool.hpp>
+#include <solver/LocalMinimizer.hpp>
 
 using namespace BOJ;
 
-constexpr int MAX_BANK_SIZE = 50;
+constexpr int MAX_BANK_SIZE = 100;
 
 constexpr int N_CROSSOVER = 100;
-constexpr int N_MUTATION = 50;
+constexpr int N_MUTATION = 100;
 
 constexpr int N_EPOCHS = 1000;
 
@@ -24,6 +26,23 @@ int main()
     Solver::Bank bank(MAX_BANK_SIZE);
     bank.Randomize();
 
+    Solver::BlockInfo blockInfo(0, bank.GetSize(), 1);
+    Solver::parallel_for(
+        blockInfo, [&bank](unsigned blockID, unsigned blockBegin,
+                           unsigned blockEnd) {
+            for (unsigned i = blockBegin; i < blockEnd; ++i)
+            {
+                auto newGene = Solver::StochasticQuench(bank.GetGene(i));
+                bank.SetGene(i, newGene);
+            }
+        });
+
+    bank.SortBank();
+
+    std::cout << "FIRST BANK" << std::endl;
+    bank.DumpStats();
+    std::cout << std::endl;
+
     for (int epoch = 0; epoch < N_EPOCHS; ++epoch)
     {
         auto newBank = makeNewSeeds(bank);
@@ -34,8 +53,8 @@ int main()
                                   unsigned blockEnd) {
                 for (unsigned i = blockBegin; i < blockEnd; ++i)
                 {
-                    BOJ::Board board(newBank.GetGene(i).board);
-                    newBank.SetGeneScore(i, board.GetScore());
+                    auto newGene = Solver::StochasticQuench(newBank.GetGene(i));
+                    newBank.SetGene(i, newGene);
                 }
             });
 
@@ -43,12 +62,11 @@ int main()
 
         copyToBank(bank, newBank);
 
-        if (epoch % 100 == 0)
-        {
-            std::cout << "After " << epoch << " epochs\n";
-            bank.DumpStats();
-            std::cout << std::endl;
-        }
+        std::cout << "epoch " << epoch << " ";
+        bank.DumpStats();
+
+        std::ofstream ofs("best_gene.txt");
+        ofs << BOJ::Board(bank.GetGene(0).board);
     }
 
     std::cout << "BEST GENE (score: " << bank.GetGeneScore(0) << ")\n"

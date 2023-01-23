@@ -10,7 +10,7 @@ namespace GeneUtils
 {
 Gene Crossover(const Gene& gene1, const Gene& gene2, double prob)
 {
-    using Random = effolkronium::random_thread_local;
+    using Random = effolkronium::random_static;
 
     BOJ::Board::Matrix newGene;
 
@@ -31,7 +31,7 @@ Gene Crossover(const Gene& gene1, const Gene& gene2, double prob)
 
 Gene Mutation(const Gene& gene, double prob)
 {
-    using Random = effolkronium::random_thread_local;
+    using Random = effolkronium::random_static;
 
     BOJ::Board::Matrix newGene = gene.board;
 
@@ -106,9 +106,7 @@ void Bank::SortBank()
 
 void Bank::DumpStats() const
 {
-    std::cout << "[Bank status]\n"
-              << "Size: " << genes_.size() << '\n'
-              << "Max score: " << genes_.front().score << '\n'
+    std::cout << "Max score: " << genes_.front().score << ", "
               << "Min score: " << genes_.back().score << std::endl;
 }
 }  // namespace Solver
