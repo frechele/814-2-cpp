@@ -1,6 +1,7 @@
 #include <effolkronium/random.hpp>
 #include <fstream>
 #include <iostream>
+#include <string>
 
 #include <solver/Genetic.hpp>
 #include <solver/LocalMinimizer.hpp>
@@ -10,12 +11,13 @@ using namespace BOJ;
 
 constexpr int MAX_BANK_SIZE = 100;
 
-constexpr int N_CROSSOVER = 100;
-constexpr int N_MUTATION = 100;
+constexpr int N_CROSSOVER = 400;
+constexpr int N_MUTATION = 200;
 
 constexpr int N_EPOCHS = 1000;
 
 Solver::Bank makeNewSeeds(const Solver::Bank& bank);
+bool LoadFromCheckpoint(const std::string& filename, Solver::Bank& bank);
 
 void oneEpoch(Solver::Bank& bank);
 
@@ -25,7 +27,10 @@ int main()
     pool.SetAsMainPool();
 
     Solver::Bank bank(MAX_BANK_SIZE);
-    bank.Randomize();
+    if (!LoadFromCheckpoint("best_gene.txt", bank))
+    {
+        bank.Randomize();
+    }
 
     Solver::BlockInfo blockInfo(0, bank.GetSize(), 1);
     Solver::parallel_for(
@@ -123,7 +128,7 @@ Solver::Bank makeNewSeeds(const Solver::Bank& bank)
 
         const Solver::Gene& gene1 = bank.GetGene(idx1);
 
-        Solver::Gene newGene = Solver::GeneUtils::Mutation(gene1, 0.2);
+        Solver::Gene newGene = Solver::GeneUtils::Mutation(gene1, 0.5);
         newBank.SetGene(currentIdx, newGene);
         ++currentIdx;
     }
@@ -135,4 +140,35 @@ Solver::Bank makeNewSeeds(const Solver::Bank& bank)
     }
 
     return newBank;
+}
+
+bool LoadFromCheckpoint(const std::string& filename, Solver::Bank& bank)
+{
+    std::ifstream ifs(filename);
+    if (!ifs.is_open())
+        return false;
+
+    BOJ::Board checkpoint;
+    for (int y = 0; y < BOJ::Board::BOARD_HEIGHT; ++y)
+    {
+        std::string line;
+        std::getline(ifs, line);
+
+        for (int x = 0; x < BOJ::Board::BOARD_WIDTH; ++x)
+        {
+            checkpoint.SetValue(x, y, line[x] - '0');
+        }
+    }
+
+    bank.SetGene(0, Solver::Gene{ checkpoint.GetBoard(), checkpoint.GetScore() });
+
+    for (int geneID = 1; geneID < bank.GetSize(); ++geneID)
+    {
+        Solver::Gene newGene = Solver::GeneUtils::Mutation(bank.GetGene(0), 0.5);
+        newGene.score = BOJ::Board(newGene.board).GetScore();
+
+        bank.SetGene(geneID, newGene);
+    }
+
+    return true; 
 }
