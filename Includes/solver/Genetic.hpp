@@ -26,6 +26,7 @@ class Bank final
     void Randomize();
 
     void SortBank();
+    void ShuffleBank();
 
     void Resize(int newCapacity);
     int GetSize() const;

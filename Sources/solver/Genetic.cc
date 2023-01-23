@@ -62,8 +62,6 @@ void Bank::Randomize()
         gene.board = board.GetBoard();
         gene.score = board.GetScore();
     }
-
-    SortBank();
 }
 
 void Bank::Resize(int newCapacity)
@@ -102,6 +100,13 @@ void Bank::SortBank()
               [](const Gene& gene1, const Gene& gene2) {
                   return gene1.score > gene2.score;
               });
+}
+
+void Bank::ShuffleBank()
+{
+    using Random = effolkronium::random_static;
+
+    Random::shuffle(genes_);
 }
 
 void Bank::DumpStats() const

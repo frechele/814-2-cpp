@@ -46,6 +46,7 @@ int main()
     for (int epoch = 0; epoch < N_EPOCHS; ++epoch)
     {
         auto newBank = makeNewSeeds(bank);
+        newBank.ShuffleBank();
 
         Solver::BlockInfo blockInfo(0, newBank.GetSize(), 1);
         Solver::parallel_for(
