@@ -1,10 +1,10 @@
 #include <effolkronium/random.hpp>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include <solver/Genetic.hpp>
-#include <solver/ThreadPool.hpp>
 #include <solver/LocalMinimizer.hpp>
+#include <solver/ThreadPool.hpp>
 
 using namespace BOJ;
 
@@ -16,7 +16,8 @@ constexpr int N_MUTATION = 100;
 constexpr int N_EPOCHS = 1000;
 
 Solver::Bank makeNewSeeds(const Solver::Bank& bank);
-void copyToBank(Solver::Bank& bank, const Solver::Bank& newBank);
+
+void oneEpoch(Solver::Bank& bank);
 
 int main()
 {
@@ -28,8 +29,8 @@ int main()
 
     Solver::BlockInfo blockInfo(0, bank.GetSize(), 1);
     Solver::parallel_for(
-        blockInfo, [&bank](unsigned blockID, unsigned blockBegin,
-                           unsigned blockEnd) {
+        blockInfo,
+        [&bank](unsigned blockID, unsigned blockBegin, unsigned blockEnd) {
             for (unsigned i = blockBegin; i < blockEnd; ++i)
             {
                 auto newGene = Solver::StochasticQuench(bank.GetGene(i));
@@ -45,23 +46,7 @@ int main()
 
     for (int epoch = 0; epoch < N_EPOCHS; ++epoch)
     {
-        auto newBank = makeNewSeeds(bank);
-        newBank.ShuffleBank();
-
-        Solver::BlockInfo blockInfo(0, newBank.GetSize(), 1);
-        Solver::parallel_for(
-            blockInfo, [&newBank](unsigned blockID, unsigned blockBegin,
-                                  unsigned blockEnd) {
-                for (unsigned i = blockBegin; i < blockEnd; ++i)
-                {
-                    auto newGene = Solver::StochasticQuench(newBank.GetGene(i));
-                    newBank.SetGene(i, newGene);
-                }
-            });
-
-        newBank.SortBank();
-
-        copyToBank(bank, newBank);
+        oneEpoch(bank);
 
         std::cout << "epoch " << epoch << " ";
         bank.DumpStats();
@@ -74,6 +59,44 @@ int main()
               << bank.GetGene(0).board << std::endl;
 
     return EXIT_SUCCESS;
+}
+
+void oneEpoch(Solver::Bank& bank)
+{
+    auto newBank = makeNewSeeds(bank);
+    newBank.ShuffleBank();
+
+    Solver::BlockInfo blockInfo(0, newBank.GetSize(), 1);
+    Solver::parallel_for(
+        blockInfo,
+        [&newBank](unsigned blockID, unsigned blockBegin, unsigned blockEnd) {
+            for (unsigned i = blockBegin; i < blockEnd; ++i)
+            {
+                auto newGene = Solver::StochasticQuench(newBank.GetGene(i));
+                newBank.SetGene(i, newGene);
+            }
+        });
+
+    newBank.SortBank();
+
+    int newBankSize = 0;
+    for (int n = 0; n < MAX_BANK_SIZE; ++n)
+    {
+        if (n > 0 && newBank.GetGene(n).board == newBank.GetGene(n - 1).board)
+            continue;
+
+        bank.SetGene(n, newBank.GetGene(n));
+        ++newBankSize;
+    }
+
+    for (; newBankSize < MAX_BANK_SIZE; ++newBankSize)
+    {
+        BOJ::Board board;
+        board.Randomize();
+
+        bank.SetGene(newBankSize,
+                     Solver::Gene{ board.GetBoard(), board.GetScore() });
+    }
 }
 
 Solver::Bank makeNewSeeds(const Solver::Bank& bank)
@@ -112,12 +135,4 @@ Solver::Bank makeNewSeeds(const Solver::Bank& bank)
     }
 
     return newBank;
-}
-
-void copyToBank(Solver::Bank& bank, const Solver::Bank& newBank)
-{
-    for (int n = 0; n < MAX_BANK_SIZE; ++n)
-    {
-        bank.SetGene(n, newBank.GetGene(n));
-    }
 }
